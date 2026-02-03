@@ -47,19 +47,39 @@ Replace MD-based workflow (PLAN.md + DEVLOG.md) with GitHub Issues integrated wi
 
 Simplified two-level hierarchy + supporting types:
 
+```mermaid
+flowchart TB
+    subgraph features[" "]
+        F[**FEATURE**<br/>type/feature]
+        F --> T1[Task]
+        F --> T2[Task]
+        F --> T3[Task]
+    end
+
+    subgraph standalone[" "]
+        B[**BUG**<br/>type/bug]
+        FB[**FEEDBACK**<br/>type/feedback]
+    end
+
+    FB -.->|minor| T4[New Task]
+    FB -.->|major| F2[Spec Update]
+
+    style F fill:#0052CC,color:#fff
+    style T1 fill:#5319E7,color:#fff
+    style T2 fill:#5319E7,color:#fff
+    style T3 fill:#5319E7,color:#fff
+    style T4 fill:#5319E7,color:#fff
+    style B fill:#D73A4A,color:#fff
+    style FB fill:#C5DEF5,color:#000
+    style F2 fill:#0052CC,color:#fff
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  FEATURE                        │  BUG         │  FEEDBACK      │
-│  (type/feature)                 │  (type/bug)  │  (type/feedback)│
-│                                 │              │                │
-│  Has spec in specs/###-name/    │  Repro+Fix   │  Triggers      │
-│  Generates Task issues          │  Standalone  │  spec update   │
-│           ↓                     │              │  or task       │
-│       TASK issues               │              │                │
-│       (type/task)               │              │                │
-│       [US1], [US2], [P]         │              │                │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+| Type | Label | Has Spec | Generates Tasks |
+|------|-------|----------|-----------------|
+| Feature | `type/feature` | Yes (`specs/###-name/`) | Yes |
+| Task | `type/task` | No (part of Feature) | No |
+| Bug | `type/bug` | No | No |
+| Feedback | `type/feedback` | No | Routes to Task or Spec update |
 
 **Why simplified:**
 - Epic/Story levels replaced by spec files (Spec-Kit workflow)
@@ -162,34 +182,34 @@ Spec-Kit commands work with local files (`specs/###-feature-name/`) and don't au
 
 ### Workflow: Feature → Spec → Tasks → Issues
 
+```mermaid
+flowchart TD
+    A[**Feature Issue**<br/>type/feature, spec/draft] --> B[/speckit.specify/]
+    B --> C[spec.md<br/>User Stories, Requirements]
+    C --> D[/speckit.clarify/]
+    D -->|Questions?| D
+    D -->|Approved| E[/speckit.plan/]
+    E --> F[plan.md, data-model.md]
+    F --> G[/speckit.tasks/]
+    G --> H[tasks.md]
+    H --> I[/speckit.taskstoissues/]
+    I --> J[**Task Issues**<br/>type/task]
+    J --> K[Implementation]
+    K -->|Closes #N| L[Done]
+
+    style A fill:#0052CC,color:#fff
+    style J fill:#5319E7,color:#fff
+    style L fill:#0E8A16,color:#fff
 ```
-1. FEATURE ISSUE
-   Create manually with high-level description
-   Label: type/feature, spec/draft
-                    ↓
-2. /speckit.specify "description from Feature issue"
-   → Creates specs/###-feature-name/spec.md
-   → Contains User Stories, Requirements, Success Criteria
-                    ↓
-3. /speckit.clarify
-   → AI asks max 5 questions about ambiguity
-   → Refines spec interactively
-   → Repeat until spec/approved
-                    ↓
-4. /speckit.plan
-   → Creates plan.md, data-model.md, contracts/
-                    ↓
-5. /speckit.tasks
-   → Creates tasks.md with [US1], [US2], [P] tags
-                    ↓
-6. /speckit.taskstoissues
-   → Creates Task issues as sub-issues of Feature
-   → Label: type/task
-                    ↓
-7. IMPLEMENT
-   → Work on Task issues
-   → Commit: "Closes #task-number"
-```
+
+**Steps:**
+1. **Feature Issue** - Create with high-level description
+2. **/speckit.specify** - Creates `specs/###-name/spec.md`
+3. **/speckit.clarify** - AI asks questions, refine until approved
+4. **/speckit.plan** - Creates `plan.md`, `data-model.md`, `contracts/`
+5. **/speckit.tasks** - Generates `tasks.md` with `[US1]`, `[US2]`, `[P]` tags
+6. **/speckit.taskstoissues** - Creates Task issues as sub-issues
+7. **Implement** - Work on tasks, commit with `Closes #N`
 
 ---
 
