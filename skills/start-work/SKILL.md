@@ -7,17 +7,29 @@ Start work on issue #$ARGUMENTS:
 
 1. **Load issue details:**
    ```bash
-   gh issue view $ARGUMENTS --json title,body,labels
+   gh issue view $ARGUMENTS --json number,title,body,labels
    ```
 
-2. **Mark as work in progress:**
+2. **Determine issue type** from labels and create appropriate branch:
+
+   **Feature** (`type/feature`):
+   ```bash
+   git checkout -b feature/$ARGUMENTS-{short-slug}
+   ```
+
+   **Bug** (`type/bug`):
+   ```bash
+   git checkout -b fix/$ARGUMENTS-{short-slug}
+   ```
+
+   **Task** (`type/task`):
+   - Check if already on a feature branch
+   - If yes: stay on current branch (tasks are commits within feature branch)
+   - If no: warn that Task should be worked on from its parent Feature branch
+
+3. **Mark as work in progress:**
    ```bash
    gh issue edit $ARGUMENTS --add-label "status/wip"
-   ```
-
-3. **Create feature branch:**
-   ```bash
-   git checkout -b issue-$ARGUMENTS
    ```
 
 4. **Add starting comment:**
@@ -26,3 +38,11 @@ Start work on issue #$ARGUMENTS:
    ```
 
 5. **Display issue summary** for context.
+
+## Branch Naming
+
+| Issue Type | Branch Pattern | Example |
+|------------|----------------|---------|
+| Feature | `feature/{number}-{slug}` | `feature/42-user-auth` |
+| Bug | `fix/{number}-{slug}` | `fix/99-login-crash` |
+| Task | (no new branch) | Work on parent feature branch |

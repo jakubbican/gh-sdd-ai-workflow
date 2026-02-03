@@ -289,6 +289,67 @@ In commit message, automatically close issues:
 
 ---
 
+## Branching Strategy
+
+Feature-based branching: one branch per Feature, Tasks are commits within.
+
+```mermaid
+gitGraph
+    commit id: "main"
+    branch feature/42-user-auth
+    commit id: "#101 data model"
+    commit id: "#102 API endpoints"
+    commit id: "#103 UI components"
+    checkout main
+    merge feature/42-user-auth id: "PR #42" type: HIGHLIGHT
+    commit id: "main continues"
+```
+
+### Rules
+
+| Rule | Description |
+|------|-------------|
+| **Branch per Feature** | `feature/{issue-number}-{short-name}` |
+| **Tasks = Commits** | Each Task is one or more commits on the feature branch |
+| **PR at the end** | Create PR when all Tasks are done |
+| **Squash merge** | Keep main history clean |
+| **Close via PR** | PR description: `Closes #42` (Feature) + `Closes #101, #102, #103` (Tasks) |
+
+### Workflow
+
+```bash
+# 1. Start Feature
+git checkout -b feature/42-user-auth
+
+# 2. Work on Tasks (commits reference Task issues)
+git commit -m "feat: add user data model
+
+Implements #101"
+
+git commit -m "feat: add auth API endpoints
+
+Implements #102"
+
+# 3. Create PR when done
+gh pr create --title "User authentication" --body "Closes #42
+
+Tasks:
+- Closes #101
+- Closes #102
+- Closes #103"
+
+# 4. Squash merge
+gh pr merge --squash
+```
+
+### Exceptions
+
+- **Bug fixes:** Direct branch `fix/{issue-number}-{description}`, PR to main
+- **Hotfixes:** Can go directly to main if urgent (solo projects)
+- **Small standalone tasks:** `task/{issue-number}` branch, PR to main
+
+---
+
 ## Skills
 
 Skills are in `skills/` folder. Copy to your project's `.claude/skills/` or use globally via `~/.claude/skills/`.
