@@ -31,6 +31,8 @@ This is a **methodology repository**, not a runtime dependency. Individual proje
 
 **Key principle:** Projects are self-contained. This repo provides templates, documentation, and optional shared skills - but each project works independently.
 
+> **Language note:** Documentation is in English. Users can communicate with Claude in Czech or English.
+
 ---
 
 # Methodology Documentation

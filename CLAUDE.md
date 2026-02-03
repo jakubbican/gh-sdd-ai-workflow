@@ -1,29 +1,29 @@
 # gh-sdd-ai-workflow
 
-Metodologie pro Spec-Driven Development s AI agenty a GitHub Issues.
+Methodology for Spec-Driven Development with AI agents and GitHub Issues.
 
-## O tomto repozitáři
+## About This Repository
 
-Toto je **metodologický repozitář**, ne runtime závislost. Obsahuje:
-- `README.md` - kompletní dokumentace metodologie
-- `skills/` - custom skills pro Claude Code
-- `templates/` - issue templates pro kopírování do projektů
-- `BOOTSTRAP.md` - checklist pro nastavení nového projektu
+This is a **methodology repository**, not a runtime dependency. Contains:
+- `README.md` - complete methodology documentation
+- `skills/` - custom skills for Claude Code
+- `templates/` - issue templates to copy into projects
+- `BOOTSTRAP.md` - checklist for setting up new projects
 
-## Práce s tímto repozitářem
+## Working with This Repository
 
-### Úpravy metodologie
+### Editing Methodology
 
-Při úpravách `README.md`:
-1. Udržuj konzistenci mezi dokumentací a soubory v `skills/` a `templates/`
-2. Pokud měníš template nebo skill, uprav i odpovídající sekci v dokumentaci
+When editing `README.md`:
+1. Keep consistency between documentation and files in `skills/` and `templates/`
+2. If you change a template or skill, update the corresponding section in documentation
 
-### Struktura
+### Structure
 
 ```
-├── README.md                # Hlavní dokumentace
-├── CLAUDE.md                # Tento soubor
-├── BOOTSTRAP.md             # Checklist pro nové projekty
+├── README.md                # Main documentation
+├── CLAUDE.md                # This file
+├── BOOTSTRAP.md             # Checklist for new projects
 ├── skills/                  # Claude Code skills
 │   ├── feedback/SKILL.md
 │   ├── start-work/SKILL.md
@@ -37,20 +37,20 @@ Při úpravách `README.md`:
         └── feedback.md
 ```
 
-## Použití pro nový projekt
+## Usage for New Project
 
-Viz `BOOTSTRAP.md` nebo sekce "Bootstrap New Project" v `README.md`.
+See `BOOTSTRAP.md` or "Bootstrap New Project" section in `README.md`.
 
-Rychlý příkaz:
+Quick command:
 ```bash
-# V novém projektu
+# In new project
 specify init . --here --ai claude
-cp -r /workspace/personal/gh-sdd-ai-workflow/templates/.github .
-# + vytvořit labels, CLAUDE.md
+cp -r /path/to/gh-sdd-ai-workflow/templates/.github .
+# + create labels, CLAUDE.md
 ```
 
-## Konvence
+## Conventions
 
-- **Jazyk dokumentace:** čeština
-- **Jazyk kódu a commitů:** angličtina
-- **Skills:** anglicky (pro kompatibilitu s Claude Code)
+- **Documentation language:** English
+- **Code and commits:** English
+- **User communication:** Czech or English (user's preference)
