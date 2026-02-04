@@ -74,17 +74,18 @@ flowchart TB
     style F2 fill:#0052CC,color:#fff
 ```
 
-| Type | Label | Has Spec | Generates Tasks |
-|------|-------|----------|-----------------|
-| Feature | `type/feature` | Yes (`specs/###-name/`) | Yes |
-| Task | `type/task` | No (part of Feature) | No |
-| Bug | `type/bug` | No | No |
-| Feedback | `type/feedback` | No | Routes to Task or Spec update |
+| Type | Label | Has Spec | Description |
+|------|-------|----------|-------------|
+| Feature | `type/feature` | Yes (`specs/###-name/`) | Main work unit, tracked in GitHub |
+| Task | `type/task` | No | Optional - tasks live in `tasks.md`, issues are optional |
+| Bug | `type/bug` | No | Standalone fix |
+| Feedback | `type/feedback` | No | Routes to spec update or bug |
 
-**Why simplified:**
-- Epic/Story levels replaced by spec files (Spec-Kit workflow)
-- User Stories are part of `spec.md`, not separate issues
-- Tasks are tagged `[US1]`, `[US2]` for traceability
+**Key points:**
+- **Feature** is the main tracking unit in GitHub Issues
+- **Tasks** are defined in `tasks.md` and implemented via `/speckit.implement`
+- Task issues are **optional** - create them only if you need GitHub-level tracking
+- User Stories are part of `spec.md`, tagged `[US1]`, `[US2]` in tasks
 
 ---
 
@@ -150,9 +151,9 @@ specify init . --here --ai claude
 | `/speckit.specify` | Creates spec from feature description |
 | `/speckit.clarify` | Detects ambiguity, asks questions (max 5) |
 | `/speckit.plan` | Technical plan from spec |
-| `/speckit.tasks` | Generates tasks.md |
-| `/speckit.taskstoissues` | Creates GitHub Issues from tasks |
-| `/speckit.implement` | Autonomous implementation |
+| `/speckit.tasks` | Generates tasks.md with phases |
+| `/speckit.implement` | Implements tasks from tasks.md |
+| `/speckit.taskstoissues` | *(Optional)* Creates GitHub Issues from tasks |
 
 ### Connecting Spec-Kit with Feature Issues
 
@@ -180,36 +181,39 @@ Spec-Kit commands work with local files (`specs/###-feature-name/`) and don't au
 
 **Automation:** Use `/feature-spec` skill from `skills/feature-spec/` to automate this bridging.
 
-### Workflow: Feature → Spec → Tasks → Issues
+### Workflow: Feature → Spec → Implementation
 
 ```mermaid
 flowchart TD
     A[**Feature Issue**<br/>type/feature, spec/draft] --> B[/speckit.specify/]
-    B --> C[spec.md<br/>User Stories, Requirements]
+    B --> |update issue| C[spec.md]
     C --> D[/speckit.clarify/]
     D -->|Questions?| D
     D -->|Approved| E[/speckit.plan/]
-    E --> F[plan.md, data-model.md]
+    E --> |update issue| F[plan.md, data-model.md]
     F --> G[/speckit.tasks/]
-    G --> H[tasks.md]
-    H --> I[/speckit.taskstoissues/]
-    I --> J[**Task Issues**<br/>type/task]
-    J --> K[Implementation]
-    K -->|Closes #N| L[Done]
+    G --> |update issue| H[tasks.md<br/>Phase 1, 2, 3...]
+    H --> I[/speckit.implement/]
+    I -->|per phase| J[Commit + Push]
+    J --> |update issue| K[Next Phase]
+    K -->|all done| L[PR + Merge]
+    L -->|Closes #N| M[Done]
 
     style A fill:#0052CC,color:#fff
-    style J fill:#5319E7,color:#fff
-    style L fill:#0E8A16,color:#fff
+    style L fill:#5319E7,color:#fff
+    style M fill:#0E8A16,color:#fff
 ```
 
 **Steps:**
-1. **Feature Issue** - Create with high-level description
-2. **/speckit.specify** - Creates `specs/###-name/spec.md`
-3. **/speckit.clarify** - AI asks questions, refine until approved
-4. **/speckit.plan** - Creates `plan.md`, `data-model.md`, `contracts/`
-5. **/speckit.tasks** - Generates `tasks.md` with `[US1]`, `[US2]`, `[P]` tags
-6. **/speckit.taskstoissues** - Creates Task issues as sub-issues
-7. **Implement** - Work on tasks, commit with `Closes #N`
+1. **Feature Issue** - Create with high-level description, add branch link
+2. **/speckit.specify** - Creates `specs/###-name/spec.md` → **update issue**
+3. **/speckit.clarify** - AI asks questions, refine until approved → **update issue**
+4. **/speckit.plan** - Creates `plan.md`, `data-model.md`, `contracts/` → **update issue**
+5. **/speckit.tasks** - Generates `tasks.md` with phases → **update issue**
+6. **Implement** - Run `/speckit.implement` per phase, commit + push after each
+7. **PR** - Create PR with `Closes #Feature`
+
+> **IMPORTANT:** After each Spec-Kit command, update the Feature issue with links to created documents and current status. This ensures visibility and traceability.
 
 ---
 
@@ -310,35 +314,41 @@ gitGraph
 | Rule | Description |
 |------|-------------|
 | **Branch per Feature** | `feature/{issue-number}-{short-name}` |
-| **Tasks = Commits** | Each Task is one or more commits on the feature branch |
-| **PR at the end** | Create PR when all Tasks are done |
+| **Link branch to issue** | Add comment with branch link for easy file navigation |
+| **Commit per phase** | Commit and push after each implementation phase |
+| **Update issue** | Update Feature issue after each phase with progress |
+| **PR at the end** | Create PR when all phases are done |
 | **Squash merge** | Keep main history clean |
-| **Close via PR** | PR description: `Closes #42` (Feature) + `Closes #101, #102, #103` (Tasks) |
+| **Close via PR** | PR description: `Closes #N` for Feature issue |
 
 ### Workflow
 
 ```bash
-# 1. Start Feature
+# 1. Start Feature - create branch
 git checkout -b feature/42-user-auth
 
-# 2. Work on Tasks (commits reference Task issues)
-git commit -m "feat: add user data model
+# 2. Link branch to issue
+gh issue comment 42 -b "**Branch:** [feature/42-user-auth](../../tree/feature/42-user-auth)"
 
-Implements #101"
+# 3. Run spec phases (specify, clarify, plan, tasks)
+# Update issue after each phase!
 
-git commit -m "feat: add auth API endpoints
+# 4. Implement per phase
+# "/speckit.implement Phase 1 from Feature #42"
+git add . && git commit -m "feat: Phase 1 - setup infrastructure" && git push
 
-Implements #102"
+# 5. Update issue with progress
+gh issue comment 42 -b "Phase 1 complete. Commits: abc123"
 
-# 3. Create PR when done
-gh pr create --title "User authentication" --body "Closes #42
+# 6. Repeat for each phase...
 
-Tasks:
-- Closes #101
-- Closes #102
-- Closes #103"
+# 7. Create PR when all phases done
+gh pr create --title "feat: User authentication" --body "## Summary
+Complete implementation of user authentication.
 
-# 4. Squash merge
+Closes #42"
+
+# 8. Squash merge
 gh pr merge --squash
 ```
 
@@ -361,6 +371,103 @@ Skills are in `skills/` folder. Copy to your project's `.claude/skills/` or use 
 | `/done` | Complete issue (commit, remove WIP, comment) |
 | `/feedback` | Analyze and route feedback |
 | `/feature-spec` | Bridge Feature issue → Spec-Kit |
+
+---
+
+## Recommended Prompts
+
+### Spec Phases
+
+```bash
+# Start new feature (reads issue, creates spec)
+"Read Feature issue #N and run /speckit.specify with its content"
+
+# Clarify spec
+"/speckit.clarify"
+
+# Create technical plan
+"/speckit.plan"
+
+# Generate tasks
+"/speckit.tasks"
+```
+
+### Implementation (Iterative)
+
+**Recommended approach** - run one phase at a time with explicit commit/push:
+
+```bash
+# Implement next incomplete phase
+"/speckit.implement next incomplete phase from Feature #N. After completion: commit, push, update Feature issue with progress."
+
+# Or shorter version (requires CLAUDE.md setup)
+"/speckit.implement Phase X from Feature #N"
+```
+
+### Progress Updates
+
+```bash
+# Update Feature issue with current state
+"Update Feature issue #N with current implementation progress and links to artifacts"
+
+# Add branch link to issue (at start of work)
+"Add comment to Feature issue #N with link to branch for easy file navigation"
+```
+
+### Feature Completion
+
+```bash
+# Create PR and close feature
+"Create PR for Feature #N with summary of all changes. Include 'Closes #N' in PR body."
+```
+
+---
+
+## Feature Issue Updates (REQUIRED)
+
+After **every** Spec-Kit command, update the Feature issue with:
+
+1. **Link to created document** (in branch)
+2. **Current workflow status**
+3. **Next step**
+
+### Example Comment Template
+
+```markdown
+## Spec Phase Complete ✓
+
+**Branch:** [feature/N-name](../../tree/feature/N-name)
+
+### Created
+- [spec.md](../../blob/feature/N-name/specs/001-name/spec.md)
+
+### Status
+- [x] /speckit.specify
+- [ ] /speckit.clarify
+- [ ] /speckit.plan
+- [ ] /speckit.tasks
+- [ ] Implementation
+
+### Next
+Run `/speckit.clarify` to refine the spec.
+```
+
+### After Implementation Phase
+
+```markdown
+## Phase X Complete ✓
+
+### Implemented
+- [x] T001-T005 (Setup)
+- [x] T006-T008 (Foundation)
+
+### Commits
+- `abc123` feat: add monorepo structure
+- `def456` feat: add shared package
+
+### Next
+Phase 3: User Story 1 (T009-T020)
+```
 
 ---
 
