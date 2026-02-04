@@ -1,6 +1,6 @@
 ---
 name: done
-description: Complete work on an issue
+description: Complete work on an issue (Feature or Bug)
 ---
 
 Complete issue #$ARGUMENTS:
@@ -10,53 +10,38 @@ Complete issue #$ARGUMENTS:
    gh issue view $ARGUMENTS --json number,title,labels
    ```
 
-2. **Verify all acceptance criteria met** by reviewing the issue requirements.
+2. **Verify all work is complete:**
+   - For Feature: all phases implemented, tests pass
+   - For Bug: fix verified, tests pass
 
-3. **Stage relevant files:**
+3. **Ensure all changes committed and pushed:**
    ```bash
-   git add [relevant files]
+   git status
+   git push
    ```
 
 4. **Handle based on issue type:**
 
    ---
 
-   **Task** (`type/task`):
-
-   Commit with reference (issue closes when PR merges):
-   ```bash
-   git commit -m "feat: [description]
-
-   Implements #$ARGUMENTS"
-   ```
-
-   Remove WIP label:
-   ```bash
-   gh issue edit $ARGUMENTS --remove-label "status/wip"
-   ```
-
-   Add comment:
-   ```bash
-   gh issue comment $ARGUMENTS -b "Implementation complete. Will close when Feature PR merges."
-   ```
-
-   **Note:** Stay on feature branch, continue with next Task.
-
-   ---
-
    **Feature** (`type/feature`):
 
-   Create PR that closes Feature and all its Tasks:
+   Create PR that closes the Feature:
    ```bash
-   gh pr create --title "[Feature title]" --body "## Summary
-   [Description]
+   gh pr create --title "feat: [Feature title]" --body "## Summary
+   [Description of what was implemented]
 
-   Closes #$ARGUMENTS
+   ## Phases Completed
+   - Phase 1: Setup
+   - Phase 2: Foundation
+   - Phase 3: Core functionality
+   - ...
 
-   ## Tasks
-   - Closes #[task1]
-   - Closes #[task2]
-   - Closes #[task3]"
+   ## Test Plan
+   - [x] All tests pass
+   - [x] Manual verification done
+
+   Closes #$ARGUMENTS"
    ```
 
    Remove WIP label:
@@ -68,19 +53,19 @@ Complete issue #$ARGUMENTS:
 
    **Bug** (`type/bug`):
 
-   Commit and create PR:
+   Create PR that fixes the Bug:
    ```bash
-   git commit -m "fix: [description]
+   gh pr create --title "fix: [Bug description]" --body "## Problem
+   [What was wrong]
+
+   ## Solution
+   [How it was fixed]
+
+   ## Test Plan
+   - [x] Bug no longer reproducible
+   - [x] Tests added/updated
 
    Fixes #$ARGUMENTS"
-
-   gh pr create --title "Fix: [bug title]" --body "Fixes #$ARGUMENTS
-
-   ## What was wrong
-   [description]
-
-   ## How it was fixed
-   [description]"
    ```
 
    Remove WIP label:
@@ -90,8 +75,11 @@ Complete issue #$ARGUMENTS:
 
 ## Summary
 
-| Issue Type | Commit Keyword | Creates PR | Closes Issue |
-|------------|----------------|------------|--------------|
-| Task | `Implements #N` | No | Via Feature PR |
-| Feature | `Closes #N` | Yes | Via PR merge |
-| Bug | `Fixes #N` | Yes | Via PR merge |
+| Issue Type | PR Keyword | Closes Issue |
+|------------|------------|--------------|
+| Feature | `Closes #N` | Via PR merge |
+| Bug | `Fixes #N` | Via PR merge |
+
+## After PR Merge
+
+The issue will be automatically closed when PR is merged.

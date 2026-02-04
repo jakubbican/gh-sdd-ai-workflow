@@ -22,19 +22,16 @@ Start work on issue #$ARGUMENTS:
    git checkout -b fix/$ARGUMENTS-{short-slug}
    ```
 
-   **Task** (`type/task`):
-   - Check if already on a feature branch
-   - If yes: stay on current branch (tasks are commits within feature branch)
-   - If no: warn that Task should be worked on from its parent Feature branch
-
 3. **Mark as work in progress:**
    ```bash
    gh issue edit $ARGUMENTS --add-label "status/wip"
    ```
 
-4. **Add starting comment:**
+4. **Add branch link comment** (for easy file navigation):
    ```bash
-   gh issue comment $ARGUMENTS -b "Starting work on this issue."
+   gh issue comment $ARGUMENTS -b "**Branch:** [\`feature/$ARGUMENTS-{slug}\`](../../tree/feature/$ARGUMENTS-{slug})
+
+   Work started on this issue."
    ```
 
 5. **Display issue summary** for context.
@@ -45,4 +42,12 @@ Start work on issue #$ARGUMENTS:
 |------------|----------------|---------|
 | Feature | `feature/{number}-{slug}` | `feature/42-user-auth` |
 | Bug | `fix/{number}-{slug}` | `fix/99-login-crash` |
-| Task | (no new branch) | Work on parent feature branch |
+
+## Next Steps
+
+For **Feature** issues, continue with Spec-Kit phases:
+```
+/speckit.specify
+```
+
+For **Bug** issues, investigate and fix directly.

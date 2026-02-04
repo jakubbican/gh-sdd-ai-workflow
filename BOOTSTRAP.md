@@ -23,7 +23,7 @@ Verify created: `.claude/commands/`, `templates/`, `scripts/`, `memory/`
 
 ```bash
 gh label create "type/feature" -c "0052CC" -d "Feature with spec"
-gh label create "type/task" -c "5319E7" -d "Implementation task"
+gh label create "type/task" -c "5319E7" -d "Implementation task (optional)"
 gh label create "type/bug" -c "D73A4A" -d "Bug fix"
 gh label create "type/feedback" -c "C5DEF5" -d "Feedback"
 gh label create "spec/draft" -c "FEF2C0" -d "Spec in progress"
@@ -34,9 +34,6 @@ gh label create "status/blocked" -c "D93F0B" -d "Blocked"
 
 ### 3. Create Issue Templates
 
-Create `.github/ISSUE_TEMPLATE/` with templates from:
-`/workspace/personal/gh-sdd-ai-workflow/templates/.github/ISSUE_TEMPLATE/`
-
 ```bash
 mkdir -p .github/ISSUE_TEMPLATE
 cp /workspace/personal/gh-sdd-ai-workflow/templates/.github/ISSUE_TEMPLATE/* .github/ISSUE_TEMPLATE/
@@ -44,7 +41,7 @@ cp /workspace/personal/gh-sdd-ai-workflow/templates/.github/ISSUE_TEMPLATE/* .gi
 
 ### 4. Create CLAUDE.md
 
-Create `CLAUDE.md` with project-specific instructions. Include:
+Create `CLAUDE.md` with project-specific instructions:
 
 ```markdown
 # [Project Name]
@@ -58,41 +55,43 @@ https://github.com/jakubbican/gh-sdd-ai-workflow
 
 | Type | Label | Purpose |
 |------|-------|---------|
-| Feature | `type/feature` | New functionality, triggers Spec-Kit |
-| Task | `type/task` | Implementation unit from spec |
+| Feature | `type/feature` | Main work unit, tracked in GitHub |
+| Task | `type/task` | Optional - tasks live in `tasks.md` |
 | Bug | `type/bug` | Bug fix, no spec needed |
-| Feedback | `type/feedback` | Feedback on existing feature |
+| Feedback | `type/feedback` | Routes to spec update or bug |
 
 ### Feature Workflow
 
-1. **Create Feature issue** on GitHub (label: `type/feature`, `spec/draft`)
-2. **Read issue and run Spec-Kit:**
-   - `/speckit.specify` with issue content
-   - `/speckit.clarify` - answer questions
-   - `/speckit.plan` - technical plan
-   - `/speckit.tasks` - generate tasks
-3. **Create task issues:** `/speckit.taskstoissues`
-4. **Change label** to `spec/approved`
-5. **Implement tasks**, commit with `Closes #N`
+1. **Create Feature issue** (label: `type/feature`, `spec/draft`)
+2. **Create branch** and **link to issue**
+3. **Run Spec-Kit phases** - update issue after each:
+   - `/speckit.specify` → update issue
+   - `/speckit.clarify` → update issue
+   - `/speckit.plan` → update issue
+   - `/speckit.tasks` → update issue
+4. **Implement per phase** - commit + push + update issue after each
+5. **Create PR** with `Closes #N`
 
-### Daily Work
+### Recommended Prompts
 
-```bash
-gh issue list -l "status/wip"              # What's in progress
-gh issue edit N --add-label "status/wip"   # Claim task
-# ... work ...
-git commit -m "feat: X\n\nCloses #N"       # Complete
+#### Spec Phases
+```
+Read Feature issue #N and run /speckit.specify with its content.
+After completion, update the issue with link to spec.md and status.
 ```
 
-### Spec-Kit Commands
+#### Implementation (per phase)
+```
+/speckit.implement next incomplete phase from Feature #N.
+After completion: commit all changes, push, update Feature issue with progress.
+```
 
-| Command | Function |
-|---------|----------|
-| `/speckit.specify` | Create spec from description |
-| `/speckit.clarify` | Refine spec (max 5 questions) |
-| `/speckit.plan` | Technical implementation plan |
-| `/speckit.tasks` | Generate task list |
-| `/speckit.taskstoissues` | Create GitHub issues from tasks |
+### Feature Issue Updates (REQUIRED)
+
+After EVERY Spec-Kit command or implementation phase, update the Feature issue with:
+- Link to created documents (in branch)
+- Current workflow status
+- Next step
 
 ## Project-Specific Instructions
 
@@ -117,11 +116,9 @@ git push -u origin main
 - [ ] `/speckit.specify` command available
 - [ ] Labels visible on GitHub
 - [ ] Issue templates work (try creating issue)
-- [ ] CLAUDE.md contains full workflow
+- [ ] CLAUDE.md contains workflow with prompts
 
 ## Quick Bootstrap Command
-
-For Claude, single command to run after prerequisites are met:
 
 ```
 Bootstrap this project with SDD workflow from /workspace/personal/gh-sdd-ai-workflow
