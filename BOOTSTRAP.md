@@ -21,6 +21,8 @@ Verify created: `.claude/commands/`, `templates/`, `scripts/`, `memory/`
 
 ### 2. Create GitHub Labels
 
+> **TODO:** Migrate to native GitHub Issue Types when `gh` CLI fully supports them.
+
 ```bash
 gh label create "type/feature" -c "0052CC" -d "Feature with spec"
 gh label create "type/task" -c "5319E7" -d "Implementation task (optional)"

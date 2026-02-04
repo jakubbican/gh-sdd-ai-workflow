@@ -91,6 +91,8 @@ flowchart TB
 
 ## Labels
 
+> **TODO:** Migrate to native [GitHub Issue Types](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization) when `gh` CLI fully supports them. Native types (Task, Bug, Feature) are available at org level but CLI tooling is limited.
+
 ```bash
 # Issue types
 gh label create "type/feature" -c "0052CC" -d "Feature with spec (triggers Spec-Kit)"
