@@ -8,12 +8,6 @@
 ├── README.md                    ← Methodology documentation (this file)
 ├── CLAUDE.md                    ← Instructions for this repo
 ├── BOOTSTRAP.md                 ← Checklist for new projects
-├── skills/                      ← Claude Code skills
-│   ├── start-work/SKILL.md      ← Start work on issue
-│   ├── progress/SKILL.md        ← Add progress comment
-│   ├── done/SKILL.md            ← Complete issue
-│   ├── feedback/SKILL.md        ← Process feedback
-│   └── feature-spec/SKILL.md    ← Bridge Feature→Spec-Kit
 └── templates/
     └── .github/ISSUE_TEMPLATE/
         ├── feature.md           ← Feature with spec
@@ -29,7 +23,7 @@ This is a **methodology repository**, not a runtime dependency. Individual proje
 - Reference this methodology in their CLAUDE.md
 - Remain fully functional standalone
 
-**Key principle:** Projects are self-contained. This repo provides templates, documentation, and optional shared skills - but each project works independently.
+**Key principle:** Projects are self-contained. This repo provides templates and documentation - each project works independently.
 
 > **Language note:** Documentation is in English. Users can communicate with Claude in Czech or English.
 
@@ -114,6 +108,70 @@ gh label create "priority/high" -c "B60205" -d "High priority"
 
 ---
 
+## Mandatory Label Transitions
+
+These label changes are **required** at specific points in the workflow:
+
+| Trigger | Command | Labels Change |
+|---------|---------|---------------|
+| After `/speckit.tasks` | `gh issue edit N --remove-label "spec/draft" --add-label "spec/approved"` | spec/draft → spec/approved |
+| Start implementation | `gh issue edit N --add-label "status/wip"` | + status/wip |
+| Before PR | `gh issue edit N --remove-label "status/wip"` | - status/wip |
+
+### Feature Issue Label Lifecycle
+
+```
+CREATION
+│ Labels: type/feature + spec/draft
+│
+├─ /speckit.specify
+├─ /speckit.clarify
+├─ /speckit.plan
+│
+└─► /speckit.tasks COMPLETE
+    │
+    ║ MANDATORY: gh issue edit N --remove-label "spec/draft" --add-label "spec/approved"
+    │
+    Labels: type/feature + spec/approved
+    │
+├─► START IMPLEMENTATION
+    │
+    ║ MANDATORY: gh issue edit N --add-label "status/wip"
+    │
+    Labels: type/feature + spec/approved + status/wip
+    │
+├─ Phase 1 → commit, push, comment
+├─ Phase 2 → commit, push, comment
+├─ Phase N → commit, push, comment
+    │
+└─► ALL PHASES COMPLETE
+    │
+    ║ MANDATORY: gh issue edit N --remove-label "status/wip"
+    │
+    Labels: type/feature + spec/approved
+    │
+└─► CREATE PR with "Closes #N" → MERGE → Issue auto-closed
+```
+
+### Bug Issue Label Lifecycle
+
+```
+CREATION
+│ Labels: type/bug
+│
+├─► START WORK
+    ║ gh issue edit N --add-label "status/wip"
+│
+├─ Fix, test, commit, push
+│
+├─► COMPLETE
+    ║ gh issue edit N --remove-label "status/wip"
+│
+└─► CREATE PR with "Fixes #N" → MERGE → auto-closed
+```
+
+---
+
 ## Milestones
 
 Create **ad-hoc** when it makes sense (release, important milestone, MVP done).
@@ -181,13 +239,11 @@ Spec-Kit commands work with local files (`specs/###-feature-name/`) and don't au
 4. Continue with /speckit.clarify, /speckit.plan, etc.
 ```
 
-**Automation:** Use `/feature-spec` skill from `skills/feature-spec/` to automate this bridging.
-
 ### Workflow: Feature → Spec → Implementation
 
 ```mermaid
 flowchart TD
-    A[**Feature Issue**<br/>type/feature, spec/draft] --> B[/speckit.specify/]
+    A[**Feature Issue**<br/>type/feature + spec/draft] --> B[/speckit.specify/]
     B --> |update issue| C[spec.md]
     C --> D[/speckit.clarify/]
     D -->|Questions?| D
@@ -195,15 +251,19 @@ flowchart TD
     E --> |update issue| F[plan.md, data-model.md]
     F --> G[/speckit.tasks/]
     G --> |update issue| H[tasks.md<br/>Phase 1, 2, 3...]
-    H --> I[/speckit.implement/]
-    I -->|per phase| J[Commit + Push]
-    J --> |update issue| K[Next Phase]
-    K -->|all done| L[PR + Merge]
-    L -->|Closes #N| M[Done]
+    H --> |**LABEL: spec/approved**| I[Start Implementation]
+    I --> |**LABEL: +status/wip**| J[/speckit.implement/]
+    J -->|per phase| K[Commit + Push]
+    K --> |update issue| L[Next Phase]
+    L -->|all done| M[**LABEL: -status/wip**]
+    M --> N[PR + Merge]
+    N -->|Closes #N| O[Done]
 
     style A fill:#0052CC,color:#fff
-    style L fill:#5319E7,color:#fff
-    style M fill:#0E8A16,color:#fff
+    style H fill:#FEF2C0,color:#000
+    style I fill:#0E8A16,color:#fff
+    style N fill:#5319E7,color:#fff
+    style O fill:#0E8A16,color:#fff
 ```
 
 **Steps:**
@@ -211,9 +271,11 @@ flowchart TD
 2. **/speckit.specify** - Creates `specs/###-name/spec.md` → **update issue**
 3. **/speckit.clarify** - AI asks questions, refine until approved → **update issue**
 4. **/speckit.plan** - Creates `plan.md`, `data-model.md`, `contracts/` → **update issue**
-5. **/speckit.tasks** - Generates `tasks.md` with phases → **update issue**
-6. **Implement** - Run `/speckit.implement` per phase, commit + push after each
-7. **PR** - Create PR with `Closes #Feature`
+5. **/speckit.tasks** - Generates `tasks.md` with phases → **update issue** + **change label to `spec/approved`**
+6. **Start Implementation** - **Add `status/wip` label**
+7. **Implement** - Run `/speckit.implement` per phase, commit + push after each
+8. **Before PR** - **Remove `status/wip` label**
+9. **PR** - Create PR with `Closes #Feature`
 
 > **IMPORTANT:** After each Spec-Kit command, update the Feature issue with links to created documents and current status. This ensures visibility and traceability.
 
@@ -238,15 +300,13 @@ cp -r templates/.github .
 
 ## Processing Feedback Issues
 
-Feedback can range from minor tweaks to spec changes. Use `/feedback` skill to classify:
+Feedback can range from minor tweaks to spec changes. Classify and route:
 
 | Classification | Action |
 |----------------|--------|
 | **A) MINOR** | Create task, implement directly |
 | **B) SPEC UPDATE** | Update spec.md, regenerate tasks |
 | **C) STANDALONE** | Create new Feature or handle as bug |
-
-See `skills/feedback/SKILL.md` for full workflow.
 
 ---
 
@@ -335,22 +395,31 @@ gh issue comment 42 -b "**Branch:** [feature/42-user-auth](../../tree/feature/42
 # 3. Run spec phases (specify, clarify, plan, tasks)
 # Update issue after each phase!
 
-# 4. Implement per phase
+# 4. After /speckit.tasks - change label
+gh issue edit 42 --remove-label "spec/draft" --add-label "spec/approved"
+
+# 5. Start implementation - add WIP label
+gh issue edit 42 --add-label "status/wip"
+
+# 6. Implement per phase
 # "/speckit.implement Phase 1 from Feature #42"
 git add . && git commit -m "feat: Phase 1 - setup infrastructure" && git push
 
-# 5. Update issue with progress
+# 7. Update issue with progress
 gh issue comment 42 -b "Phase 1 complete. Commits: abc123"
 
-# 6. Repeat for each phase...
+# 8. Repeat for each phase...
 
-# 7. Create PR when all phases done
+# 9. Before PR - remove WIP label
+gh issue edit 42 --remove-label "status/wip"
+
+# 10. Create PR when all phases done
 gh pr create --title "feat: User authentication" --body "## Summary
 Complete implementation of user authentication.
 
 Closes #42"
 
-# 8. Squash merge
+# 11. Squash merge
 gh pr merge --squash
 ```
 
@@ -359,20 +428,6 @@ gh pr merge --squash
 - **Bug fixes:** Direct branch `fix/{issue-number}-{description}`, PR to main
 - **Hotfixes:** Can go directly to main if urgent (solo projects)
 - **Small standalone tasks:** `task/{issue-number}` branch, PR to main
-
----
-
-## Skills
-
-Skills are in `skills/` folder. Copy to your project's `.claude/skills/` or use globally via `~/.claude/skills/`.
-
-| Skill | Purpose |
-|-------|---------|
-| `/start-work` | Start working on issue (branch, WIP label, comment) |
-| `/progress` | Add progress comment to issue |
-| `/done` | Complete issue (commit, remove WIP, comment) |
-| `/feedback` | Analyze and route feedback |
-| `/feature-spec` | Bridge Feature issue → Spec-Kit |
 
 ---
 
@@ -436,7 +491,7 @@ After **every** Spec-Kit command, update the Feature issue with:
 ### Example Comment Template
 
 ```markdown
-## Spec Phase Complete ✓
+## Spec Phase Complete
 
 **Branch:** [feature/N-name](../../tree/feature/N-name)
 
@@ -457,7 +512,7 @@ Run `/speckit.clarify` to refine the spec.
 ### After Implementation Phase
 
 ```markdown
-## Phase X Complete ✓
+## Phase X Complete
 
 ### Implemented
 - [x] T001-T005 (Setup)
@@ -480,7 +535,6 @@ Phase 3: User Story 1 (T009-T020)
 │  gh-sdd-ai-workflow (this repo)                                 │
 │  ─────────────────────────────                                  │
 │  • Methodology documentation                                    │
-│  • Custom skills (beyond Spec-Kit)                             │
 │  • Issue templates (source of truth)                           │
 │  • Bootstrap instructions                                       │
 │  • NOT a runtime dependency                                    │
@@ -503,7 +557,6 @@ Phase 3: User Story 1 (T009-T020)
 1. **Projects are portable** - Anyone can clone a single project and it works
 2. **Methodology evolves** - Update here, projects can pull changes
 3. **Spec-Kit stays local** - Each project has its own `/speckit.*` commands
-4. **Skills can be shared** - Via `~/.claude/skills/` or symlinks (optional)
 
 ---
 
@@ -530,6 +583,7 @@ gh issue list -l "type/feature"         # Filter
 gh issue view 123                       # Detail
 gh issue create -t "Title" -b "Body" -l "type/feature"
 gh issue edit 123 --add-label "x"
+gh issue edit 123 --remove-label "x"
 gh issue comment 123 -b "Text"
 gh issue close 123
 
@@ -545,5 +599,4 @@ gh label create "name" -c "color" -d "description"
 - [GitHub Spec-Kit](https://github.com/github/spec-kit) - Official SDD toolkit
 - [Spec-driven development blog](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
 - [GitHub Sub-issues](https://github.blog/engineering/architecture-optimization/introducing-sub-issues-enhancing-issue-management-on-github/)
-- [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)
 - [gh CLI Manual](https://cli.github.com/manual/)

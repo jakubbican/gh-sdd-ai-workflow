@@ -31,13 +31,15 @@ assignees: ''
 - [ ] `/speckit.clarify` → comment with status
 - [ ] `/speckit.plan` → comment with plan.md link
 - [ ] `/speckit.tasks` → comment with phases overview
-- [ ] Change label to `spec/approved`
+- [ ] **Label:** `gh issue edit N --remove-label "spec/draft" --add-label "spec/approved"`
 
-### Implementation (per phase)
+### Implementation
+- [ ] **Label:** `gh issue edit N --add-label "status/wip"`
 - [ ] Phase 1: Setup → commit, push, comment
 - [ ] Phase 2: Foundation → commit, push, comment
 - [ ] Phase N: ... → commit, push, comment
 
 ### Completion
+- [ ] **Label:** `gh issue edit N --remove-label "status/wip"`
 - [ ] Create PR with `Closes #N`
 - [ ] Link to spec: `specs/###-name/`
