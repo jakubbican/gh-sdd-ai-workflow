@@ -73,7 +73,7 @@ https://github.com/jakubbican/gh-sdd-ai-workflow
 ### Feature Workflow
 
 1. **Create Feature issue** (label: `type/feature`, `spec/draft`)
-2. **Create branch** `feature/{N}-{slug}` and **link to issue**
+2. **Run `/speckit.specify`** - creates branch `###-feature-name` and **link to issue**
 3. **Run Spec-Kit phases** - update issue after each:
    - `/speckit.specify` → update issue
    - `/speckit.clarify` → update issue

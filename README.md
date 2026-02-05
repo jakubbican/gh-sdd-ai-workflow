@@ -359,15 +359,17 @@ In commit message, automatically close issues:
 
 Feature-based branching: one branch per Feature, Tasks are commits within.
 
+> **Note:** Branch names use spec-kit format `###-feature-name` (e.g., `042-user-auth`) which matches the `specs/` directory structure. This is created automatically by `/speckit.specify`.
+
 ```mermaid
 gitGraph
     commit id: "main"
-    branch feature/42-user-auth
+    branch 042-user-auth
     commit id: "#101 data model"
     commit id: "#102 API endpoints"
     commit id: "#103 UI components"
     checkout main
-    merge feature/42-user-auth id: "PR #42" type: HIGHLIGHT
+    merge 042-user-auth id: "PR #42" type: HIGHLIGHT
     commit id: "main continues"
 ```
 
@@ -375,7 +377,7 @@ gitGraph
 
 | Rule | Description |
 |------|-------------|
-| **Branch per Feature** | `feature/{issue-number}-{short-name}` |
+| **Branch per Feature** | `###-feature-name` (e.g., `042-user-auth`) - created by spec-kit |
 | **Link branch to issue** | Add comment with branch link for easy file navigation |
 | **Commit per phase** | Commit and push after each implementation phase |
 | **Update issue** | Update Feature issue after each phase with progress |
@@ -386,11 +388,11 @@ gitGraph
 ### Workflow
 
 ```bash
-# 1. Start Feature - create branch
-git checkout -b feature/42-user-auth
+# 1. Start Feature - spec-kit creates branch automatically
+# Run /speckit.specify which creates branch 042-user-auth and specs/042-user-auth/
 
 # 2. Link branch to issue
-gh issue comment 42 -b "**Branch:** [feature/42-user-auth](../../tree/feature/42-user-auth)"
+gh issue comment 42 -b "**Branch:** [042-user-auth](../../tree/042-user-auth)"
 
 # 3. Run spec phases (specify, clarify, plan, tasks)
 # Update issue after each phase!
@@ -425,9 +427,9 @@ gh pr merge --squash
 
 ### Exceptions
 
-- **Bug fixes:** Direct branch `fix/{issue-number}-{description}`, PR to main
+- **Bug fixes:** Direct branch `fix-{issue-number}-{description}`, PR to main
 - **Hotfixes:** Can go directly to main if urgent (solo projects)
-- **Small standalone tasks:** `task/{issue-number}` branch, PR to main
+- **Small standalone tasks:** `task-{issue-number}` branch, PR to main
 
 ---
 
@@ -493,10 +495,10 @@ After **every** Spec-Kit command, update the Feature issue with:
 ```markdown
 ## Spec Phase Complete
 
-**Branch:** [feature/N-name](../../tree/feature/N-name)
+**Branch:** [00N-feature-name](../../tree/00N-feature-name)
 
 ### Created
-- [spec.md](../../blob/feature/N-name/specs/001-name/spec.md)
+- [spec.md](../../blob/00N-feature-name/specs/00N-feature-name/spec.md)
 
 ### Status
 - [x] /speckit.specify

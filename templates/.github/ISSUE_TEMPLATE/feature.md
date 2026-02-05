@@ -23,7 +23,7 @@ assignees: ''
 **Workflow:**
 
 ### Setup
-- [ ] Create branch `feature/{N}-{slug}`
+- [ ] Create branch via `/speckit.specify` (creates `###-feature-name`)
 - [ ] Add branch link comment to this issue
 
 ### Spec Phases (update issue after each!)
